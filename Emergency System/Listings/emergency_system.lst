@@ -1,0 +1,96 @@
+C51 COMPILER V9.60.7.0   EMERGENCY_SYSTEM                                                  12/23/2024 05:33:25 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE EMERGENCY_SYSTEM
+OBJECT MODULE PLACED IN .\Objects\emergency_system.obj
+COMPILER INVOKED BY: C:\Keil_v5_8051\C51\BIN\C51.EXE emergency_system.c OPTIMIZE(9,SPEED) BROWSE DEBUG OBJECTEXTEND PRIN
+                    -T(.\Listings\emergency_system.lst) TABS(2) OBJECT(.\Objects\emergency_system.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include "lcd.h"
+   3          #include "SIM808.h"
+   4          #include "serial.h"
+   5          #include "interrupt.h"
+   6          
+   7          #define NUMBER "+201092998552"
+   8          
+   9          void delay();
+  10          
+  11          
+  12          int main(void) {
+  13   1        lcd_init();
+  14   1        lcd_clear();
+  15   1        serial_init();
+  16   1        clear_buffer();
+  17   1        enable();
+  18   1        
+  19   1        disable_echo();
+  20   1        delay();
+  21   1        
+  22   1        lcd_clear();
+  23   1        enable_gnss();
+  24   1        delay();
+  25   1        
+  26   1        lcd_clear();
+  27   1        text_mode();
+  28   1        delay();
+  29   1        
+  30   1        while(1) {
+  31   2          if (flag_ex == 0) {
+  32   3            lcd_clear();
+  33   3            write_string("ACCIDENT");
+  34   3            delay();
+  35   3            send_sms(NUMBER, latitude, longitude);
+  36   3            flag_ex = 1;
+  37   3          }
+  38   2          update_gnss();
+  39   2          extract_gnss_data();
+  40   2          delay();
+  41   2          
+  42   2          lcd_clear();
+  43   2          write_date(datetime);
+  44   2          delay();
+  45   2          delay();
+  46   2        
+  47   2          lcd_clear();
+  48   2          write_string(latitude);
+  49   2          move_cursor_second_line();
+  50   2          write_string(longitude);
+  51   2          delay();
+  52   2          delay();
+  53   2      
+  54   2        }
+C51 COMPILER V9.60.7.0   EMERGENCY_SYSTEM                                                  12/23/2024 05:33:25 PAGE 2   
+
+  55   1      }
+  56          
+  57          void delay() {
+  58   1        int i;
+  59   1        TH0 = 0X00;
+  60   1        TL0 = 0X00;
+  61   1        TR0 = 1;
+  62   1        for (i =0; i < 10; i++) {
+  63   2          while(TF0 == 0);
+  64   2          TF0 = 0;
+  65   2          TR0 = 1;
+  66   2        }
+  67   1        TF0 = 0;
+  68   1        TR0 = 0;
+  69   1        return;
+  70   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    179    ----
+   CONSTANT SIZE    =     23    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

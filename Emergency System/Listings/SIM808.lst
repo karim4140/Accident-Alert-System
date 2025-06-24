@@ -1,0 +1,205 @@
+C51 COMPILER V9.60.7.0   SIM808                                                            12/23/2024 05:53:58 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE SIM808
+OBJECT MODULE PLACED IN .\Objects\SIM808.obj
+COMPILER INVOKED BY: C:\Keil_v5_8051\C51\BIN\C51.EXE SIM808.c OPTIMIZE(9,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listin
+                    -gs\SIM808.lst) TABS(2) OBJECT(.\Objects\SIM808.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include "lcd.h"
+   3          #include "SIM808.h"
+   4          #include "serial.h"
+   5          
+   6          #define BUFFER_SIZE 56
+   7          #define DATETIME_OFFSET 14
+   8          #define LATITUDE_OFFSET 33
+   9          #define LONGITUDE_OFFSET 43
+  10          
+  11          unsigned char serial_buffer[BUFFER_SIZE];
+  12          unsigned char latitude[11];
+  13          unsigned char longitude[12];
+  14          unsigned char datetime[19];
+  15          
+  16          unsigned char counter = 0;
+  17          unsigned char flag = 0;
+  18          
+  19          void clear_buffer() {
+  20   1        int i;
+  21   1        for (i = 0; i < BUFFER_SIZE; i++) {
+  22   2          serial_buffer[i] = '\0';
+  23   2          counter = 0;
+  24   2        }
+  25   1        return;
+  26   1      }
+  27          
+  28          void ISR_serial() interrupt 4 {
+  29   1        if (RI == 1) {
+  30   2          RI = 0;
+  31   2          if (counter == 54) {
+  32   3            serial_buffer[counter] = '\r';
+  33   3            serial_buffer[counter+1] = '\0';
+  34   3            return;
+  35   3          } else if (counter > 54) {
+  36   3            return;
+  37   3          }
+  38   2          if ((unsigned char)SBUF == '\r' || (unsigned char)SBUF == '\n') {
+  39   3            if (counter > 0) {
+  40   4              flag = 1;
+  41   4            }
+  42   3            return;
+  43   3          }
+  44   2          serial_buffer[counter] = (unsigned char)SBUF;
+  45   2          counter++;
+  46   2        }
+  47   1        return;
+  48   1      }
+  49          
+  50          void disable_echo() {
+  51   1        clear_buffer();
+  52   1        send_string(prefix);
+  53   1        send_string(disable_echo_command);
+  54   1        send_string(delimiter);
+C51 COMPILER V9.60.7.0   SIM808                                                            12/23/2024 05:53:58 PAGE 2   
+
+  55   1        
+  56   1        while(1) {
+  57   2          if (flag) {
+  58   3            write_string("Disable Echo");
+  59   3            move_cursor_second_line();
+  60   3            write_string(serial_buffer);
+  61   3            return;
+  62   3          }
+  63   2        }
+  64   1      }
+  65          
+  66          void text_mode() {
+  67   1        clear_buffer();
+  68   1        send_string(prefix);
+  69   1        send_string(select_SMS_message_format);
+  70   1        send_char('1');
+  71   1        send_string(delimiter);
+  72   1        
+  73   1        while(1) {
+  74   2          if (flag) {
+  75   3            write_string("Text Mode");
+  76   3            move_cursor_second_line();
+  77   3            write_string(serial_buffer);
+  78   3            return;
+  79   3          }
+  80   2        }
+  81   1      }
+  82          
+  83          void send_sms(unsigned char *number, unsigned char *latitude, unsigned char *longitude) {
+  84   1        clear_buffer();
+  85   1        write_string("Sending SMS...");
+  86   1        
+  87   1        move_cursor_second_line();
+  88   1        send_string(prefix);
+  89   1        send_string(send_SMS);
+  90   1        send_char('"');
+  91   1        send_string(number);
+  92   1        send_char('"');
+  93   1        send_string(delimiter);
+  94   1        gsm_delay();
+  95   1        send_string("Accident Occured at:\n");
+  96   1        send_string(latitude);
+  97   1        send_string(", ");
+  98   1        send_string(longitude);
+  99   1        send_char(SMS_delimiter);
+ 100   1        write_string("SMS Sent"); 
+ 101   1        return;
+ 102   1      }
+ 103          
+ 104          void enable_gnss() {
+ 105   1        clear_buffer();
+ 106   1        send_string(prefix);
+ 107   1        send_string(gnss_power);
+ 108   1        send_char('1');
+ 109   1        send_string(delimiter);
+ 110   1        while(1) {
+ 111   2          if (flag) {
+ 112   3            write_string("Enable GNSS");
+ 113   3            move_cursor_second_line();
+ 114   3            write_string(serial_buffer);
+ 115   3            return;
+ 116   3          }
+C51 COMPILER V9.60.7.0   SIM808                                                            12/23/2024 05:53:58 PAGE 3   
+
+ 117   2        }
+ 118   1      }
+ 119          
+ 120          void update_gnss() {
+ 121   1        clear_buffer();
+ 122   1        send_string(prefix);
+ 123   1        send_string(gnss_info);
+ 124   1        send_string(delimiter);
+ 125   1        while(1) {
+ 126   2          if (flag) {
+ 127   3            return;
+ 128   3          }
+ 129   2        }
+ 130   1      }
+ 131          
+ 132          void extract_gnss_data() {
+ 133   1        unsigned char i = 14;
+ 134   1        unsigned char comma = 0;
+ 135   1        gsm_delay();
+ 136   1        for (; i < counter; i++) {
+ 137   2          if (serial_buffer[i] == '\0') {
+ 138   3            datetime[i] = '\0';
+ 139   3            latitude[i] = '\0';
+ 140   3            longitude[i] = '\0';
+ 141   3            return;
+ 142   3          }
+ 143   2          if (serial_buffer[i] == ',') {
+ 144   3            comma++;
+ 145   3            continue;
+ 146   3          }
+ 147   2          switch (comma) {
+ 148   3            case 0:
+ 149   3              datetime[i - DATETIME_OFFSET] = serial_buffer[i];
+ 150   3              break;
+ 151   3            case 1:
+ 152   3              latitude[i - LATITUDE_OFFSET] = serial_buffer[i];
+ 153   3              break;
+ 154   3            case 2:
+ 155   3              longitude[i - LONGITUDE_OFFSET] = serial_buffer[i];
+ 156   3              break;
+ 157   3          }   
+ 158   2        }
+ 159   1        return;
+ 160   1      }
+ 161          
+ 162          void gsm_delay() {
+ 163   1        int i;
+ 164   1        TH0 = 0X00;
+ 165   1        TL0 = 0X00;
+ 166   1        TR0 = 1;
+ 167   1        for (i =0; i < 10; i++) {
+ 168   2          while(TF0 == 0);
+ 169   2          TF0 = 0;
+ 170   2          TR0 = 1;
+ 171   2        }
+ 172   1        TF0 = 0;
+ 173   1        TR0 = 0;
+ 174   1        return;
+ 175   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.60.7.0   SIM808                                                            12/23/2024 05:53:58 PAGE 4   
+
+   CODE SIZE        =    537    ----
+   CONSTANT SIZE    =    126    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =    100      11
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

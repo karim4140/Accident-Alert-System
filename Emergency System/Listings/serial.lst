@@ -1,0 +1,56 @@
+C51 COMPILER V9.60.7.0   SERIAL                                                            12/23/2024 03:12:20 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE SERIAL
+OBJECT MODULE PLACED IN .\Objects\serial.obj
+COMPILER INVOKED BY: C:\Keil_v5_8051\C51\BIN\C51.EXE serial.c OPTIMIZE(9,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listin
+                    -gs\serial.lst) TABS(2) OBJECT(.\Objects\serial.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include "serial.h"
+   3          
+   4          // Generate 9600 baudrate 
+   5          void serial_init() {
+   6   1        SM0 = 0;
+   7   1        SM1 = 1;
+   8   1        SM2 = 0;
+   9   1        REN = 1;
+  10   1        TMOD |= 0x20;
+  11   1        TH1 = 0xFD;
+  12   1        TL1 = 0xFD;
+  13   1        TR1 = 1;
+  14   1        return;
+  15   1      }
+  16          
+  17          // Sends a character via serial
+  18          void send_char(unsigned char character) {
+  19   1        SBUF = character;
+  20   1        while (TI == 0) { 
+  21   2        }
+  22   1        TI = 0;
+  23   1        return;
+  24   1      }
+  25          
+  26          // Sends a string via serial
+  27          void send_string(unsigned char *string) {
+  28   1        while(*string != '\0') {
+  29   2          send_char(*string++);
+  30   2        }
+  31   1        return;
+  32   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     65    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

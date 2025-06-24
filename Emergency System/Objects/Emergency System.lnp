@@ -1,0 +1,8 @@
+".\Objects\STARTUP.obj",
+".\Objects\emergency_system.obj",
+".\Objects\lcd.obj",
+".\Objects\SIM808.obj",
+".\Objects\serial.obj",
+".\Objects\interrupt.obj" 
+TO ".\Objects\Emergency System" 
+PRINT(".\Listings\Emergency System.m51") CODE( 0X0000-0X0FFF )

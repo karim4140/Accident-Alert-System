@@ -1,0 +1,148 @@
+C51 COMPILER V9.60.7.0   LCD                                                               12/23/2024 04:33:08 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE LCD
+OBJECT MODULE PLACED IN .\Objects\lcd.obj
+COMPILER INVOKED BY: C:\Keil_v5_8051\C51\BIN\C51.EXE lcd.c OPTIMIZE(9,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\
+                    -lcd.lst) TABS(2) OBJECT(.\Objects\lcd.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include "lcd.h"
+   3          
+   4          //LCD Commands
+   5          #define clear             0x01
+   6          #define home              0x02
+   7          #define cur_dec           0x04
+   8          #define cur_inc           0x06
+   9          #define disp_shift_right  0x05
+  10          #define disp_shift_left   0x07
+  11          #define disp_off_cur_off  0x08
+  12          #define disp_off_cur_on   0x0A
+  13          #define disp_on_cur_off 0x0C
+  14          #define disp_on_cur_on 0x0E
+  15          #define disp_on_cur_blinking 0x0F
+  16          #define cur_shift_left 0x10
+  17          #define cur_shift_right 0x14
+  18          #define disp_full_shift_left 0x18
+  19          #define disp_full_shift_right 0x1C
+  20          #define cur_first_line 0x80
+  21          #define cur_second_line 0xC0
+  22          #define init 0x38
+  23          
+  24          
+  25          void lcd_init() {
+  26   1        send_command(init);
+  27   1        send_command(disp_on_cur_blinking);
+  28   1        lcd_clear();
+  29   1        move_cursor_first_line();
+  30   1        return;
+  31   1      }
+  32          
+  33          void lcd_clear() {
+  34   1        send_command(clear);
+  35   1        send_command(cur_first_line);
+  36   1        return;
+  37   1      }
+  38          
+  39          void move_cursor_first_line() {
+  40   1        send_command(cur_first_line);
+  41   1        return;
+  42   1      }
+  43          
+  44          void move_cursor_second_line() {
+  45   1        send_command(cur_second_line);
+  46   1        return;
+  47   1      }
+  48          
+  49          void send_command(unsigned char command) {
+  50   1        lcd_data = command;
+  51   1        rs = 0;
+  52   1        rw = 0;
+  53   1        en = 1;
+  54   1        lcd_delay();
+C51 COMPILER V9.60.7.0   LCD                                                               12/23/2024 04:33:08 PAGE 2   
+
+  55   1        en = 0;
+  56   1        return;
+  57   1      }
+  58          
+  59          void write_char(unsigned char character) {
+  60   1        if (character == '\n' || character == '\r') {
+  61   2          return;
+  62   2        }
+  63   1        lcd_data = character;
+  64   1        rs = 1;
+  65   1        rw = 0;
+  66   1        en = 1;
+  67   1        lcd_delay();
+  68   1        en = 0;
+  69   1        return;
+  70   1      }
+  71          
+  72          void write_string(unsigned char *string) {
+  73   1        while(*string != '\0') {
+  74   2          write_char(*string++);
+  75   2        }
+  76   1        return;
+  77   1      }
+  78          
+  79          void write_date(unsigned char *string) {
+  80   1        unsigned char i;
+  81   1        for (i = 0; i < 4; i++) {
+  82   2          write_char(*string++);
+  83   2        }
+  84   1        write_char('/');
+  85   1        
+  86   1        for (i = 0; i < 2; i++) {
+  87   2          write_char(*string++);
+  88   2        }
+  89   1        write_char('/');
+  90   1        
+  91   1        for (i = 0; i < 2; i++) {
+  92   2          write_char(*string++);
+  93   2        }
+  94   1        
+  95   1        move_cursor_second_line();
+  96   1        
+  97   1        for (i = 0; i < 2; i++) {
+  98   2          if (i == 1) {
+  99   3            write_char(*string++ + 2);
+ 100   3            continue;
+ 101   3          }
+ 102   2          write_char(*string++);
+ 103   2        }
+ 104   1        write_char(':');
+ 105   1        
+ 106   1        for (i = 0; i < 2; i++) {
+ 107   2          write_char(*string++);
+ 108   2        } 
+ 109   1      }
+ 110          
+ 111          void lcd_delay() {
+ 112   1        TMOD |= 0x09;
+ 113   1        TH0 = 0XAF;
+ 114   1        TL0 = 0X00;
+ 115   1        TR0 = 1;
+ 116   1        while(TF0 == 0);
+C51 COMPILER V9.60.7.0   LCD                                                               12/23/2024 04:33:08 PAGE 3   
+
+ 117   1        TF0 = 0;
+ 118   1        TR0 = 0;
+ 119   1        return;
+ 120   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    309    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

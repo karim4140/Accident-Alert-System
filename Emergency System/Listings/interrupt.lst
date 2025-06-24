@@ -1,0 +1,39 @@
+C51 COMPILER V9.60.7.0   INTERRUPT                                                         12/23/2024 04:42:20 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE INTERRUPT
+OBJECT MODULE PLACED IN .\Objects\interrupt.obj
+COMPILER INVOKED BY: C:\Keil_v5_8051\C51\BIN\C51.EXE interrupt.c OPTIMIZE(9,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Lis
+                    -tings\interrupt.lst) TABS(2) OBJECT(.\Objects\interrupt.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include "interrupt.h"
+   3          #include "lcd.h"
+   4          unsigned char flag_ex = 1;
+   5          void ISR_external() interrupt 0 {
+   6   1        flag_ex = 0;
+   7   1        return;
+   8   1      }
+   9          
+  10          void enable() {
+  11   1        EA = 1;
+  12   1        ES = 1;
+  13   1        EX0 = 1;
+  14   1        IT0 = 1;
+  15   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     13    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
